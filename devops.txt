@@ -1,0 +1,1837 @@
+Run these commands in your Ubuntu terminal before starting Experiment 1 to make JDK 21 the default.
+1. Check whether JDK 21 is installed
+ls /usr/lib/jvm/
+If you see java-21-openjdk-amd64, continue.
+If it is missing:
+sudo apt update
+sudo apt install openjdk-21-jdk -y
+2. Set Java 21 as the default
+sudo update-alternatives --config java
+Select the option pointing to Java 21.
+Then configure the compiler:
+sudo update-alternatives --config javac
+Select the Java 21 option.
+3. Set JAVA_HOME and PATH
+Run:
+echo 'export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64' >> ~/.bashrc
+echo 'export PATH="$JAVA_HOME/bin:$PATH"' >> ~/.bashrc
+source ~/.bashrc
+4. Verify Java and Maven
+java -version
+javac -version
+echo $JAVA_HOME
+mvn -version
+Expected:
+java -version → Java 21
+javac -version → Java 21
+JAVA_HOME → /usr/lib/jvm/java-21-openjdk-amd64
+mvn -version → Java 21
+5. If Maven still uses an older Java version
+Run:
+export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
+export PATH="$JAVA_HOME/bin:$PATH"
+hash -r
+mvn -version
+Note: These settings make Java 21 the default for your user’s terminal sessions. If you later need Java 17 for another practical, you can switch using update-alternatives.
+
+
+EXP1:
+ DevOps Experiment 1 – Create Maven Build Pipeline in Azure
+I’ll follow your uploaded Experiment 1 PDF in the same order, changing the JDK setting from 17 to 21. The manual’s flow is: create Azure DevOps organization/project → create Maven project in IntelliJ → push it to GitHub → configure Azure Maven pipeline → run and verify.
+Ex_No_1 CREATE MAVEN BUILD PIPELINE IN AZURE (1).pdf
+Aim: To build a Maven build pipeline in Azure.
+Step 1: Create an Azure DevOps account and project
+1.1 Open Azure DevOps
+Open Azure DevOps.
+Sign in using your GitHub account.
+Create a new organization with a suitable name.
+Create a new project:
+Project name: DevOps
+Visibility: Private
+Click Create.
+This follows Step 1 of your manual (pages 1–2).
+Step 2: Open IntelliJ IDEA and configure JDK 21
+Your manual uses IntelliJ IDEA to create the Maven application (page 3).
+2.1 Open IntelliJ
+Launch IntelliJ IDEA on Ubuntu.
+2.2 Add JDK 21
+Go to File → Project Structure.
+Select Platform Settings → SDKs.
+Click + → Add JDK.
+Select:
+
+/usr/lib/jvm/java-21-openjdk-amd64
+
+Click OK.
+2.3 Set JDK 21 as the project SDK
+In Project Structure → Project:
+Project SDK: JDK 21
+Language level: 21
+Click Apply → OK.
+2.4 Configure Maven to use JDK 21
+Open File → Settings.
+Navigate to Build, Execution, Deployment → Build Tools → Maven → Runner.
+Set JRE: JDK 21.
+Go to Maven → Importing.
+Set JDK for importer: JDK 21.
+Click Apply → OK.
+Step 3: Create a Maven Java project
+In IntelliJ, click New Project.
+Select Java.
+Set:
+Name: SimpleInterest
+Build system: Maven
+JDK: 21
+Click Create.
+Your project should contain a pom.xml and a src/main/java folder.
+Step 4: Write the Java application
+Under src/main/java, create a Java class named:
+SimpleInterest.java
+Use the following code:
+public class SimpleInterest {
+    public static void main(String[] args) {
+        double principal = 10000;
+        double rate = 5;
+        double time = 2;
+
+        double simpleInterest = (principal * rate * time) / 100;
+
+        System.out.println("Principal: " + principal);
+        System.out.println("Rate: " + rate + "%");
+        System.out.println("Time: " + time + " years");
+        System.out.println("Simple Interest: " + simpleInterest);
+    }
+}
+Formula:
+
+SI=PRT100
+For the values above, the simple interest should be 1000.0.
+Step 5: Configure pom.xml for JDK 21
+Open the project’s pom.xml and use this configuration:
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.example</groupId>
+    <artifactId>simple-interest</artifactId>
+    <version>1.0</version>
+
+    <properties>
+        <maven.compiler.release>21</maven.compiler.release>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.4.2</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>SimpleInterest</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
+Step 6: Install Maven and build the project
+Open IntelliJ’s terminal using Alt + F12.
+Install Maven if it is not already installed:
+sudo apt update
+sudo apt install maven -y
+Verify Maven uses Java 21:
+mvn -version
+Check that the output reports Java 21.
+Navigate to the project root—the folder containing pom.xml—and compile:
+mvn compile
+Package the project:
+mvn package
+Expected result:
+BUILD SUCCESS
+Run the generated JAR:
+java -jar target/simple-interest-1.0.jar
+Expected output:
+Principal: 10000.0
+Rate: 5.0%
+Time: 2.0 years
+Simple Interest: 1000.0
+Step 7: Install and configure Git
+In the IntelliJ terminal:
+git --version
+If Git is not installed:
+sudo apt install git -y
+Configure your Git identity:
+git config --global user.name "YOUR_GITHUB_USERNAME"
+git config --global user.email "YOUR_GITHUB_EMAIL"
+Step 8: Create a GitHub repository and push the project
+Sign in to GitHub.
+Create a repository named SimpleInterest.
+Keep it public or private as required.
+Copy the repository HTTPS URL.
+In the IntelliJ terminal, from the project root:
+git init
+git add .
+git status
+git commit -m "First Commit"
+git branch -M main
+git remote add origin https://github.com/YOUR_USERNAME/SimpleInterest.git
+git push -u origin main
+
+Step 9: Create the Azure Maven pipeline
+Open your Azure DevOps organization.
+Select the DevOps project.
+From the left menu, select Pipelines → Pipelines.
+Click New pipeline.
+Choose GitHub.
+Authorize Azure DevOps if prompted.
+Select your SimpleInterest repository.
+Choose Maven from the pipeline configuration options.
+Azure DevOps will generate an azure-pipelines.yml file based on your repository’s pom.xml.
+Step 10: Change the pipeline to use JDK 21
+In the generated YAML, locate the Maven task. Your manual says to change the JDK version from 17; we’ll use 21 instead.
+For a reliable JDK 21 build and JAR artifact publication, use this YAML:
+trigger:
+  - main
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+  - checkout: self
+
+  - task: UseJavaVersion@1
+    inputs:
+      versionSpec: '21'
+      architecture: 'x64'
+
+  - task: Maven@4
+    inputs:
+      mavenPomFile: 'pom.xml'
+      goals: 'clean package'
+      publishJUnitResults: false
+      javaHomeOption: 'JDKVersion'
+      jdkVersionOption: '1.21'
+      jdkArchitectureOption: 'x64'
+      mavenVersionOption: 'Default'
+      mavenAuthenticateFeed: false
+
+  - task: CopyFiles@2
+    inputs:
+      SourceFolder: '$(System.DefaultWorkingDirectory)/target'
+      Contents: '*.jar'
+      TargetFolder: '$(Build.ArtifactStagingDirectory)'
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+      ArtifactName: 'simple-interest-jar'
+      publishLocation: 'Container'
+Important: Keep the YAML file in the repository root, alongside pom.xml.
+Step 11: Save and run the pipeline
+Click Save and run.
+Enter a commit message such as:
+
+Add Azure Maven build pipeline using JDK 21
+
+Save the YAML file to the main branch.
+Click Run if prompted again.
+The pipeline will:
+Check out the GitHub repository.
+Select JDK 21.
+Run Maven clean package.
+Copy the generated JAR.
+Publish the JAR as an Azure artifact.
+Step 12: Verify successful execution
+Open the pipeline run and check the job logs.
+The run should show successful completion for:
+Checkout
+JDK selection
+Maven build
+Copy artifact
+Publish artifact
+The final status should be Succeeded.
+Step 13: Download the generated JAR
+Open the successful pipeline run.
+Go to Summary.
+Find the Artifacts section.
+Click simple-interest-jar.
+Download the artifact.
+You should find:
+simple-interest-1.0.jar
+This completes the Maven build pipeline using JDK 21..
+
+DevOps Experiment 2 – Run Regression Tests Using Maven Build Pipeline in Azure
+
+Aim: To run regression tests using a Maven build pipeline in Azure..
+Step 1: Create a Maven project in IntelliJ IDEA
+Open IntelliJ IDEA.
+Click New Project.
+Select Java.
+Enter:
+Name: RegressionTesting
+Build system: Maven
+JDK: Microsoft OpenJDK 21
+Select Create Git Repository if the option appears.
+Click Create and wait for indexing to finish.
+Your project should contain pom.xml and src/main/java.
+Step 2: Configure pom.xml for Java 21 and JUnit
+Open pom.xml and add the JUnit dependency and compiler configuration.
+You can replace the file contents with:
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.example</groupId>
+    <artifactId>RegressionTesting</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <properties>
+        <maven.compiler.release>21</maven.compiler.release>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.13.2</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
+            </plugin>
+        </plugins>
+    </build>
+</project>
+After saving, click Load Maven Changes if IntelliJ displays a prompt.
+Step 3: Create the Java application
+Under src/main/java, create a package named:
+org.example
+Inside it, create Main.java:
+package org.example;
+
+public class Main {
+    public static void main(String[] args) {
+        System.out.println("Hello and welcome!");
+    }
+}
+This is the application that the regression test will verify.
+Step 4: Create the JUnit test class
+Under src/test/java, create the same package:
+org.example
+Create MainTest.java:
+package org.example;
+
+import org.junit.Test;
+
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+
+import static org.junit.Assert.assertEquals;
+
+public class MainTest {
+
+    @Test
+    public void testMainMethod() {
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+
+        System.setOut(new PrintStream(output));
+
+        try {
+            Main.main(new String[0]);
+        } finally {
+            System.setOut(originalOut);
+        }
+
+        assertEquals("Hello and welcome!", output.toString().trim());
+    }
+}
+What the test does:
+Captures the output printed by Main.main().
+Compares the actual output with the expected string.
+Passes if both strings match; otherwise, JUnit reports a failure.
+The expected text must exactly match the application output. Your manual documents an assertion mismatch involving Hello & welcome! versus Hello and welcome!; this version uses the same output and expected value.
+DevOps_Experiment_2_Regression_Testing_Azure_Documentation.docx
+Step 5: Run the regression test locally
+Since mvn was not recognized in your Windows PowerShell, use IntelliJ’s Maven tool window:
+Select View → Tool Windows → Maven.
+If the project is not listed, right-click pom.xml → Add as Maven Project.
+Expand your project → Lifecycle.
+Double-click clean.
+Double-click test.
+Alternatively, if Maven is installed and available in PATH, run from the project root:
+mvn clean test
+Expected result:
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0
+BUILD SUCCESS
+Step 6: Check the Surefire test report
+After the test runs, IntelliJ’s Maven build should generate:
+target/surefire-reports/
+Inside it, you should see a report similar to:
+TEST-org.example.MainTest.xml
+This XML report is what Azure DevOps will publish in the pipeline.
+Step 7: Create .gitignore
+In the project root—the same folder as pom.xml—create a file named .gitignore:
+target/
+.idea/
+*.iml
+This prevents generated Maven files and IntelliJ project settings from being pushed to GitHub.
+DevOps_Experiment_2_Regression_Testing_Azure_Documentation.docx
+Step 8: Initialize Git and commit the project
+Open IntelliJ Terminal at the project root.
+Check the current directory and files:
+pwd
+dir
+git status
+If Git has not been initialized:
+git init
+Then stage and commit:
+git add .
+git status
+git commit -m "Add Maven regression testing project"
+git branch -M main
+If Git asks for your identity:
+git config --global user.name "YOUR_GITHUB_USERNAME"
+git config --global user.email "YOUR_GITHUB_EMAIL"
+Then retry the commit.
+Step 9: Create a GitHub repository and push
+Open GitHub.
+Click New repository.
+Enter repository name:
+
+RegressionTesting
+
+Choose Private visibility, as in your manual.
+Leave README, .gitignore, and license unchecked.
+Click Create repository and copy its HTTPS URL.
+In IntelliJ Terminal:
+git remote add origin https://github.com/YOUR_USERNAME/RegressionTesting.git
+git remote -v
+git push -u origin main
+Replace YOUR_USERNAME with your GitHub username and use the exact URL shown by GitHub.
+If GitHub requests a password, use a Personal Access Token or another supported Git authentication method—not your account password. Do not paste the token into the source code.
+Verify that pom.xml, src, and .gitignore appear in the GitHub repository.
+Step 10: Create the Azure DevOps pipeline
+Open Azure DevOps.
+Open your existing Azure DevOps project, devopsexp1.
+Select Pipelines → Pipelines.
+Click New pipeline.
+Choose GitHub as the source.
+Authorize Azure Pipelines to access GitHub if prompted.
+Select your RegressionTesting repository.
+Choose the Maven pipeline template.
+Azure DevOps should generate an azure-pipelines.yml file. Review it and replace the contents with the following JDK 21 configuration.
+Step 11: Configure azure-pipelines.yml for JDK 21
+trigger:
+  - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+  - task: Maven@4
+    displayName: 'Run Maven Regression Tests'
+    inputs:
+      mavenPomFile: 'pom.xml'
+      mavenOptions: '-Xmx3072m'
+      javaHomeOption: 'JDKVersion'
+      jdkVersionOption: '1.21'
+      jdkArchitectureOption: 'x64'
+      mavenVersionOption: 'Default'
+      goals: 'clean test'
+
+  - task: PublishTestResults@2
+    displayName: 'Publish JUnit Test Results'
+    inputs:
+      testResultsFormat: 'JUnit'
+      testResultsFiles: '**/surefire-reports/TEST-*.xml'
+      testRunTitle: 'JUnit Regression Test Results'
+      failTaskOnFailedTests: true
+YAML explanation
+YAML setting
+Purpose
+trigger: main
+Runs the pipeline when changes are pushed to main
+ubuntu-latest
+Uses an Azure-hosted Ubuntu agent
+Maven@4
+Runs Maven commands
+jdkVersionOption: '1.21'
+Selects JDK 21 for the Maven task
+goals: 'clean test'
+Cleans old output and executes regression tests
+
+
+
+PublishTestResults@2
+Publishes JUnit test results to Azure DevOps
+TEST-*.xml
+Locates the Surefire-generated JUnit reports
+failTaskOnFailedTests: true
+Marks the pipeline as failed if tests fail
+
+This follows the pipeline structure in your manual, with the Java version changed to 21.
+DevOps_Experiment_2_Regression_Testing_Azure_Documentation.docx
+Step 12: Save and run the pipeline
+Click Save and run.
+Confirm that the YAML is committed to the main branch.
+Click Save and run again if prompted.
+Open the pipeline run.
+Inspect the logs for:
+Run Maven Regression Tests
+Publish JUnit Test Results
+The Maven task should show that the test ran successfully. Open the Tests tab to inspect the individual JUnit test result.
+Step 13: Verify the result
+Expected test summary:
+Tests run: 1
+Failures: 0
+Errors: 0
+Skipped: 0
+BUILD SUCCESS
+The Azure pipeline should finish with Succeeded, and the test results should be visible in the Tests tab.
+Result: Thus, a Maven regression-testing project was created using JUnit, pushed to GitHub, and configured in Azure DevOps to execute regression tests using JDK 21 and publish the test results.
+If the test fails
+Check that the expected string in MainTest.java exactly matches the output in Main.java:
+assertEquals("Hello and welcome!", output.toString().trim());
+Run the test locally again before pushing:
+git add .
+git commit -m "Fix regression test"
+git push
+The Azure pipeline will run again automatically when the change is pushed to main.
+For your current setup: You already configured JDK 21 in IntelliJ. Use IntelliJ’s Maven tool window to run the local test, then complete the GitHub and Azure DevOps steps above.
+
+EXP 3 :INSTALL JENKINS
+If installed 
+sudo nano /var/lib/jenkins/config.xml iot@cc5-34:~$ sudo systemctl restart jenkins userSecuriity turn into false 
+Step 1: Download the Jenkins key
+Open your Ubuntu terminal and run:
+sudo mkdir -p /etc/apt/keyrings
+sudo wget -O /etc/apt/keyrings/jenkins-keyring.asc \
+https://pkg.jenkins.io/debian-stable/jenkins.io-2026.key
+Step 2: Add Jenkins repository and install
+echo "deb [signed-by=/etc/apt/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/" \
+| sudo tee /etc/apt/sources.list.d/jenkins.list > /dev/null
+Then:
+sudo apt update
+sudo apt install jenkins -y
+Start Jenkins:
+sudo systemctl enable jenkins
+sudo systemctl start jenkins
+sudo systemctl status jenkins
+Ensure the service shows active (running).
+Step 3: Unlock Jenkins and install plugins
+Get the initial administrator password:
+sudo cat /var/lib/jenkins/secrets/initialAdminPassword
+Open the browser on Ubuntu and visit:
+http://localhost:8080
+
+Enter the initial administrator password.
+Click Continue.
+Select Install suggested plugins.
+Wait for installation to finish.
+Step 4: Create administrator user
+Enter the requested details:
+Username
+Password
+Confirm password
+Full name
+Email address
+Click Save and Continue.
+Step 5: Configure Jenkins URL
+In Instance Configuration, enter:
+http://localhost:8080/
+Click Save and Finish, then Start using Jenkins.
+Step 6: Verify
+Open:
+http://localhost:8080
+The Jenkins dashboard should appear.
+Note: Your manual mentions setting userSecurity to false in config.xml. Avoid doing this because it disables Jenkins security. The admin-user setup above completes the practical while keeping login protection enabled.
+Result: Jenkins was installed and configured successfully, and the Jenkins dashboard was accessed through the browser.
+
+
+DevOps Experiment 4 – Create CI Pipeline Using Jenkins
+Aim: To create and execute a Continuous Integration (CI) pipeline using Jenkins, GitHub, and Maven.
+This procedure follows your lab document, with JDK 21 used instead of JDK 17. No VM setup is included.
+Devops exp 4 (1).pdf
+Step 1: Check the required software
+Open your Ubuntu terminal and run:
+git --version
+java -version
+mvn -version
+sudo systemctl status jenkins
+Confirm that:
+Git is installed.
+Java reports version 21.
+Maven is installed and uses Java 21.
+Jenkins shows active (running).
+Press q to exit the Jenkins status screen.
+If Maven is missing, install it on Ubuntu with sudo apt install maven -y. If Maven uses a different Java version, configure JAVA_HOME before proceeding.
+Step 2: Open Jenkins
+Open the browser on your Ubuntu system and visit:
+http://localhost:8080
+Log in using your Jenkins username and password.
+Step 3: Install the required Jenkins plugins
+Navigate to Manage Jenkins → Plugins.
+Open Available plugins.
+Search for and install:
+Git
+Pipeline
+GitHub
+Maven Integration
+Select the plugins and click Install.
+Restart Jenkins if prompted.
+These plugins enable Jenkins to access Git repositories and execute pipeline jobs.
+Devops exp 4 (1).pdf
+Step 4: Configure JDK 21 in Jenkins
+Go to Manage Jenkins → Tools.
+Find JDK installations.
+Click Add JDK.
+Enter:
+Name: JDK21
+Uncheck Install automatically if JDK 21 is already installed on the Jenkins machine.
+JAVA_HOME:
+
+/usr/lib/jvm/java-21-openjdk-amd64
+
+Click Save.
+If the Jenkins machine does not have JDK 21 installed at that location, check the actual path first:
+readlink -f "$(which java)"
+Use the JDK installation directory as JAVA_HOME—not the full path to the java executable.
+Step 5: Configure Maven in Jenkins
+Go to Manage Jenkins → Tools.
+Find Maven installations.
+Click Add Maven.
+Enter:
+Name: Maven
+Select Install automatically to let Jenkins download Maven, or configure an existing Maven installation.
+If using an existing installation, provide its Maven home directory.
+Click Save.
+This matches the Maven configuration step in page 2 of your manual.
+Devops exp 4 (1).pdf
+Step 6: Create a new Jenkins Pipeline job
+Return to the Jenkins dashboard.
+Click New Item.
+Enter the job name:
+
+Maven-GitHub-Pipeline
+
+Select Pipeline.
+Click OK.
+Step 7: Configure the pipeline script
+Scroll to the Pipeline section.
+Definition: Pipeline script
+Paste the following script.
+Use your own GitHub repository URL and credentials ID. The manual’s example repository is Reshma4126/MavenStudentProject; if you are using your own project, replace it accordingly.
+Devops exp 4 (1).pdf
+pipeline {
+    agent any
+
+    tools {
+        jdk 'JDK21'
+        maven 'Maven'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main',
+                    credentialsId: 'github-credentials',
+                    url: 'https://github.com/YOUR_USERNAME/YOUR_REPOSITORY.git'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh 'mvn clean compile'
+            }
+        }
+
+        stage('Test') {
+            steps {
+                sh 'mvn test'
+            }
+        }
+
+        stage('Package') {
+            steps {
+                sh 'mvn package'
+            }
+        }
+    }
+}
+Important: GitHub credentials
+The credentialsId: 'github-credentials' line must match the credential ID configured in Jenkins.
+To create it:
+Go to Manage Jenkins → Credentials.
+Select the appropriate global or system credentials store.
+Click Add Credentials.
+For a private repository, choose Username with password:
+Username: your GitHub username
+Password: a GitHub Personal Access Token (PAT)
+ID: github-credentials
+Save.
+For a public repository, credentials may not be required. In that case, remove the credentialsId line from the git step.
+Do not place your GitHub password or token directly in the pipeline script.
+Step 8: Save the pipeline
+Scroll to the bottom of the job configuration.
+Click Save.
+Jenkins will open the pipeline job page.
+Step 9: Execute the pipeline
+On the left side, click Build Now.
+A new build number will appear under Build History.
+Click the build number.
+Select Console Output.
+The pipeline executes these stages in order:
+Stage
+Purpose
+Checkout
+Clones the source code from GitHub
+Build
+Compiles the Java source code
+Test
+Executes Maven/JUnit tests
+Package
+Creates the application JAR
+
+Step 10: Verify the pipeline
+In Console Output, verify that:
+GitHub checkout completes.
+Maven compilation succeeds.
+Tests pass.
+The package stage completes.
+The final output shows Finished: SUCCESS.
+If the build fails, check the first error in Console Output.
+Common errors:
+Authentication failed: Verify the GitHub credentials ID and PAT.
+Maven not found: Check the Maven installation name under Jenkins Tools.
+Java version error: Confirm Jenkins Tools has JDK 21 configured and the pipeline uses jdk 'JDK21'.
+Tests fail: Run mvn test locally and correct the test failure before rebuilding.
+Step 11: Verify the generated JAR
+After a successful build, the JAR should be created in the Jenkins workspace under:
+target/
+To make the JAR available in the Jenkins build page, you can add an archive step after the Package stage:
+post {
+    success {
+        archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+    }
+}
+Then rebuild and check Build → Artifacts.
+Result
+Thus, a Continuous Integration pipeline was created and executed using Jenkins, GitHub, and Maven. The pipeline successfully completed the Checkout, Build, Test, and Package stages.
+Experiment 6 – Create an Ansible Playbook for a Simple Web Application Infrastructure
+
+1. Aim
+To create and execute an Ansible Playbook that automatically installs the Apache web server, starts the service, deploys a simple HTML web application, and verifies its successful deployment.
+2. Requirements
+Ubuntu operating system
+Ansible installed
+Internet connection
+Terminal
+Apache web server (installed automatically by the playbook)
+Since you are using Ubuntu directly, you do not need a virtual machine for this experiment.
+3. Procedure
+Step 1: Open the terminal
+Open your Ubuntu terminal using Ctrl + Alt + T.
+Check whether Ansible is installed:
+ansible --version
+If Ansible is not installed, execute:
+sudo apt update
+sudo apt install ansible -y
+Verify the installation again:
+ansible --version
+Step 2: Create a directory for the experiment
+Create a directory named ansible-webapp to store the Ansible playbook.
+mkdir -p ~/ansible-webapp
+Navigate into the directory:
+cd ~/ansible-webapp
+Verify the current directory:
+pwd
+Expected output will show a path similar to:
+/home/your_username/ansible-webapp
+Explanation: This directory contains the YAML playbook file used to automate the web application deployment.
+Step 3: Create the Ansible Playbook
+Create a file named webapp.yml using the Nano text editor.
+nano webapp.yml
+The Nano editor will open. Enter the following complete playbook.
+
+---
+- name: Deploy a Simple Web Application
+  hosts: localhost
+  connection: local
+  become: true
+
+  tasks:
+    - name: Install Apache web server
+      ansible.builtin.apt:
+        name: apache2
+        state: present
+        update_cache: true
+
+    - name: Start and enable Apache
+      ansible.builtin.service:
+        name: apache2
+        state: started
+        enabled: true
+
+    - name: Deploy the web application
+      ansible.builtin.copy:
+        dest: /var/www/html/index.html
+        content: |
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>My Ansible Web App</title>
+          </head>
+          <body>
+            <h1>Hello from Ansible!</h1>
+            <p>My web application was deployed automatically.</p>
+          </body>
+          </html>
+        mode: "0644"
+
+    - name: Verify the web application
+      ansible.builtin.uri:
+        url: http://127.0.0.1/
+        status_code: 200
+      register: web_result
+
+    - name: Display deployment status
+      ansible.builtin.debug:
+        msg: "Web application deployed successfully!"
+Explanation of the playbook:
+Instruction
+Purpose
+hosts: localhost
+Runs the playbook on the local Ubuntu system.
+connection: local
+Uses a local connection instead of SSH.
+become: true
+Executes tasks with administrator privileges.
+apt
+Installs the Apache web server.
+state: present
+Ensures Apache is installed.
+service
+Starts Apache and enables it at boot.
+copy
+Creates the HTML file in Apache's web directory.
+uri
+Sends an HTTP request to verify the webpage.
+debug
+Displays the successful deployment message.
+
+Step 4: Save and exit the editor
+After entering the playbook:
+Press Ctrl + O to save the file.
+Press Enter to confirm the filename webapp.yml.
+Press Ctrl + X to exit Nano.
+Check whether the file exists:
+ls
+Expected output:
+webapp.yml
+Step 5: Check the playbook syntax
+Before executing the playbook, check whether the YAML syntax is valid.
+ansible-playbook webapp.yml --syntax-check
+Expected output:
+playbook: webapp.yml
+If you receive an error, reopen the file:
+nano webapp.yml
+Check the indentation carefully. YAML uses spaces, not tabs.
+Step 6: Execute the Ansible Playbook
+Run the following command:
+ansible-playbook webapp.yml --ask-become-pass
+Ansible will ask for the sudo password:
+BECOME password:
+Enter your Ubuntu user password and press Enter. The password will not be displayed while typing.
+What happens during execution?
+Ansible gathers system information.
+Installs Apache2 if it is not already installed.
+Starts the Apache service.
+Enables Apache to start automatically during system boot.
+Creates the HTML webpage at /var/www/html/index.html.
+Sends an HTTP request to http://127.0.0.1/.
+Checks whether the server returns HTTP status code 200.
+Displays the deployment success message.
+Expected output will contain tasks similar to:
+PLAY [Deploy a Simple Web Application]
+
+TASK [Gathering Facts]
+ok: [localhost]
+
+TASK [Install Apache web server]
+ok: [localhost]
+
+TASK [Start and enable Apache]
+ok: [localhost]
+
+TASK [Deploy the web application]
+changed: [localhost]
+
+TASK [Verify the web application]
+ok: [localhost]
+
+TASK [Display deployment status]
+ok: [localhost] => {
+    "msg": "Web application deployed successfully!"
+}
+The final PLAY RECAP should show:
+localhost : ok=6  changed=1  unreachable=0  failed=0
+The exact number of changed tasks may vary depending on whether Apache and the webpage already exist.
+If error occurs try this 
+Now we can see the actual problem:
+sudo -v succeeds, so your Ubuntu sudo password is correct.
+cat inventory says No such file or directory.
+Ansible cannot parse the inventory, then falls back to implicit localhost. The become prompt is timing out because Ansible isn't handling the local setup as intended.
+Let's recreate the inventory and explicitly configure Ansible for localhost.
+Step 1: Create the inventory file
+You are in the correct project directory:
+cd ~/Documents/ansible-webapp
+Create the inventory:
+nano inventory
+Enter exactly:
+[webservers]
+localhost ansible_connection=local
+Save with Ctrl+O, press Enter, then Ctrl+X.
+Verify:
+cat inventory
+Step 2: Test the inventory
+ansible-inventory -i inventory --list
+It should show localhost under the webservers group.
+Then test the connection:
+ansible webservers -i inventory -m ping
+Expected:
+localhost | SUCCESS => {
+    "changed": false,
+    "ping": "pong"
+}
+Step 3: Run the playbook with sudo password
+ansible-playbook -i inventory webapp.yml -K
+Enter your Ubuntu password at BECOME password:. The password won't display as you type.
+Step 4: If become still times out
+Run this test:
+ansible localhost -i inventory -m command -a "whoami" -b -K
+If it succeeds, output should be:
+root
+Then rerun the playbook.
+Important: Don't use sudo ansible-playbook. Run Ansible as your normal user and let -K handle privilege escalation.
+Or  run this cmd 
+sudo ansible-playbook -i inventory webapp.yml
+
+Step 7: Verify the Apache service
+Check whether Apache is running:
+sudo systemctl status apache2
+Expected output:
+apache2.service - The Apache HTTP Server
+Active: active (running)
+Press q to exit the status screen.
+Explanation: The active (running) status confirms that the Apache web server is running successfully.
+Step 8: Verify the webpage using the terminal
+Execute:
+curl http://localhost
+Expected output:
+<!DOCTYPE html>
+<html>
+<head>
+  <title>My Ansible Web App</title>
+</head>
+<body>
+  <h1>Hello from Ansible!</h1>
+  <p>My web application was deployed automatically.</p>
+</body>
+</html>
+This confirms that Apache is serving the HTML page correctly.
+Step 9: Verify the webpage using a browser
+Open Firefox or any web browser in Ubuntu.
+Enter the following URL in the address bar:
+http://localhost
+Press Enter.
+The webpage should display:
+Hello from Ansible!
+My Ansible Web App
+My web application was deployed automatically.
+This is the expected webpage output shown in the final page of your experiment PDF.
+devops exp 6 (2).pdf
+4. Result
+Thus, an Ansible Playbook was created and executed successfully to install and configure the Apache web server, deploy a simple HTML web application, and verify its successful operation.
+Experiment 7(a) and 7(b) – Gradle Application Development
+I’ve referred to your uploaded DevOps practical PDF. Below are the detailed, step-by-step procedures for both experiments, with commands, code, IntelliJ instructions, expected outputs, and corrections where the PDF's instructions need clarification.
+Ex.No_7(a).pdf
+Experiment 7(a): Build a simple Java application using Gradle through the terminal.
+Experiment 7(b): Build a Java application using Gradle in IntelliJ IDEA, run it, push it to GitHub, host a static website using GitHub Pages, and configure Selenium testing and JAR packaging.
+Experiment 7(a): Build a Simple Application Using Gradle
+1. Aim
+To create, build, and execute a simple Java application using Gradle build automation tool.
+2. Requirements
+Ubuntu operating system
+Java JDK 17
+Gradle
+Terminal
+Git and GitHub account
+3. Detailed Procedure
+Step 1: Check Java installation
+Open the Ubuntu terminal and execute:
+java -version
+Check the Java compiler:
+javac -version
+If Java 17 is not installed, execute:
+sudo apt update
+sudo apt install openjdk-17-jdk -y
+Set Java 17 as the default if multiple Java versions are installed:
+sudo update-alternatives --config java
+Choose the Java 17 option.
+Verify:
+java -version
+Step 2: Install Gradle
+Install Gradle using the command specified in your practical:
+sudo snap install gradle --classic
+Verify the installation:
+gradle -version
+The output displays the Gradle version, JVM version, and operating system details.
+Explanation: Gradle is a build automation tool used to compile source code, manage dependencies, run tests, and package Java applications.
+Step 3: Create the project directory
+Create a directory named java_application.
+mkdir java_application
+Navigate into the directory:
+cd java_application
+Verify the current location:
+pwd
+Step 4: Initialize the Gradle project
+Execute:
+gradle init
+Gradle displays a series of interactive questions.
+Choose the following options:
+Prompt
+Selection
+Type of project
+Application
+Implementation language
+Java
+Java version
+17
+Project name
+java_application
+Application structure
+Single application
+Build script DSL
+Groovy
+Test framework
+JUnit 4
+Generate using new APIs
+No, if prompted
+
+Use the arrow keys to select options and press Enter.
+Explanation: The gradle init command generates the basic project structure, build configuration, Java source files, test files, and Gradle Wrapper.
+Step 5: Install the tree command
+Install the tree utility to view the project structure.
+sudo apt install tree -y
+Display the project structure:
+tree
+The generated project will look similar to:
+java_application/
+├── app
+│   ├── build.gradle
+│   └── src
+│       ├── main
+│       │   └── java
+│       │       └── java_application
+│       │           └── App.java
+│       └── test
+│           └── java
+├── gradle
+│   └── wrapper
+├── gradlew
+├── gradlew.bat
+├── settings.gradle
+└── README.md
+Important: Gradle may generate a multi-project structure with an app folder. If so, enter it before editing the Java application:
+cd app
+Step 6: Execute the generated application
+From the project root, run:
+./gradlew run
+If you are inside the app directory, use:
+../gradlew run
+The default generated application displays a greeting message such as:
+Hello World!
+Explanation: The Gradle Wrapper downloads the required Gradle version, compiles the Java source code, and executes the main application.
+Step 7: Modify the Java application
+Open the Java source file.
+For the generated project, it may be located at:
+nano app/src/main/java/java_application/App.java
+If you are already inside app, use the relative path:
+nano src/main/java/java_application/App.java
+Replace the generated code with the following arithmetic application:
+
+package java_application;
+
+public class App {
+    public static void main(String[] args) {
+        int a = 20;
+        int b = 10;
+
+        System.out.println("Arithmetic Operations");
+        System.out.println("Addition: " + (a + b));
+        System.out.println("Subtraction: " + (a - b));
+        System.out.println("Multiplication: " + (a * b));
+        System.out.println("Division: " + (a / b));
+    }
+}
+Save the file and exit Nano.
+Explanation:
+package java_application; specifies the package containing the class.
+main() is the entry point of the Java program.
+The program performs addition, subtraction, multiplication, and division.
+System.out.println() displays the results.
+Step 8: Modify the Gradle build file
+Open the build.gradle file:
+nano app/build.gradle
+Locate the application section and ensure the main class is specified correctly.
+application {
+    mainClass = 'java_application.App'
+}
+Important: The main class must match the package and class name in App.java.
+For example:
+Package: java_application
+Class: App
+Main class: java_application.App
+If you use org.example as the package, the main class must be org.example.App.
+Save and exit.
+Step 9: Run the modified application
+From the project root:
+./gradlew run
+Expected output:
+Arithmetic Operations
+Addition: 30
+Subtraction: 10
+Multiplication: 200
+Division: 2
+The Java application is now successfully built and executed using Gradle.
+Step 10: Display the project structure
+From the project root:
+tree
+This displays the source files, test files, build scripts, and Gradle Wrapper.
+Step 11: Change the package and main class (as shown in the record)
+If the practical requires demonstrating a package change:
+Open App.java.
+Change the package declaration.
+Move the file into the corresponding package directory.
+Update the mainClass property in build.gradle.
+Run the application again.
+For example, change the package to:
+package demo;
+Then update build.gradle:
+application {
+    mainClass = 'demo.App'
+}
+Run:
+./gradlew run
+This verifies that Gradle can execute the application after package and class configuration changes.
+Step 12: Initialize Git
+Return to the project root:
+cd ~/java_application
+Initialize Git:
+git init
+Add the project files:
+git add .
+Check the status:
+git status
+Step 13: Commit the project
+Execute:
+git commit -m "Initial commit"
+If Git asks for your identity, configure it:
+git config --global user.name "Your GitHub Username"
+git config --global user.email "Your GitHub Email"
+Then run the commit command again.
+Step 14: Create a GitHub repository
+Open GitHub.
+Sign in to your account.
+Click the + icon and select New repository.
+Enter a repository name, such as java_application.
+Choose Public or Private.
+Create the repository without adding a README if your local project already has one.
+Copy the repository URL.
+Step 15: Connect the local project to GitHub
+Replace the URL below with your own repository URL:
+git remote add origin https://github.com/YOUR_USERNAME/java_application.git
+Rename the branch to main:
+git branch -M main
+Push the project:
+git push -u origin main
+If prompted for a password, use a GitHub Personal Access Token instead of your account password.
+Result – Experiment 7(a)
+Thus, a simple Java arithmetic application was created, built, and executed successfully using Gradle. The project was also initialized using Git and pushed to a GitHub repository.
+Experiment 7(b): Build a Simple Application Using Gradle in IntelliJ IDEA
+1. Aim
+To build a simple Java application using Gradle in IntelliJ IDEA, perform Selenium testing, package the application as a JAR file, and host a static website using GitHub Pages.
+2. Requirements
+Ubuntu operating system
+Java JDK 17
+IntelliJ IDEA
+Gradle
+Git and GitHub account
+Internet connection
+3. Detailed Procedure
+Step 1: Install Gradle
+Open the Ubuntu terminal:
+sudo snap install gradle --classic
+Verify:
+gradle -version
+Step 2: Install IntelliJ IDEA
+If IntelliJ IDEA is not installed, execute:
+sudo snap install intellij-idea-community --classic
+Launch IntelliJ IDEA from the applications menu.
+If the command is not available, use the Ubuntu applications search to open IntelliJ IDEA.
+Step 3: Check and configure JDK 17
+In IntelliJ IDEA:
+Open File → Project Structure.
+Select Project.
+Set the Project SDK to Java 17.
+If Java 17 is unavailable, select Download JDK.
+Choose version 17 and a suitable vendor.
+Click Apply and OK.
+You can also check Java from the IntelliJ terminal:
+java -version
+Step 4: Create a new Gradle project
+Open IntelliJ IDEA.
+Click New Project.
+Enter the project name, for example DevOpsGradle.
+Select Gradle as the build system.
+Select Java as the language.
+Choose JDK 17.
+Select Groovy DSL for the build script.
+Set the Group ID to org.example.
+Enable the Gradle Wrapper if prompted.
+Click Create.
+Wait for IntelliJ to finish loading and synchronizing the Gradle project.
+Step 5: Understand the project structure
+The project should contain:
+DevOpsGradle/
+├── gradle/
+│   └── wrapper/
+├── src/
+│   ├── main/
+│   │   └── java/
+│   │       └── org/example/
+│   │           └── Main.java
+│   └── test/
+│       └── java/
+├── build.gradle
+├── settings.gradle
+├── gradlew
+└── gradlew.bat
+Explanation:
+src/main/java: Contains the main Java application.
+src/test/java: Contains test programs.
+build.gradle: Defines dependencies, plugins, tasks, and application configuration.
+settings.gradle: Defines the project name.
+gradlew: Executes Gradle using the project's configured version.
+Step 6: Modify the Gradle build file
+Open build.gradle and replace its contents with:
+
+plugins {
+    id 'java'
+    id 'application'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.seleniumhq.selenium:selenium-java:4.34.0'
+    testImplementation 'org.testng:testng:7.10.2'
+}
+
+application {
+    mainClass = 'org.example.Main'
+}
+
+test {
+    useTestNG()
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'org.example.Main'
+    }
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+Save the file.
+Explanation of important sections:
+Section
+Purpose
+plugins
+Enables Java and application support.
+repositories
+Downloads libraries from Maven Central.
+dependencies
+Adds Selenium and TestNG libraries for testing.
+application
+Specifies the main Java class.
+test
+Configures Gradle to run TestNG tests.
+jar
+Adds the main class to the JAR manifest.
+toolchain
+Ensures Java 17 is used for compilation.
+
+Wait for Gradle synchronization to complete.
+Step 7: Create the Java application
+Navigate to:
+src/main/java/org/example/Main.java
+Replace the code with:
+
+package org.example;
+
+public class Main {
+    public static void main(String[] args) {
+        System.out.println("Welcome to My Simple Application");
+        System.out.println("Application built using Gradle");
+    }
+}
+Save the file.
+Explanation: This is the main Java class. Gradle uses the mainClass configuration to identify and execute the main() method.
+Step 8: Build and run the application
+Method 1 – Using IntelliJ IDEA
+Open the Gradle tool window using View → Tool Windows → Gradle.
+Expand the project.
+Expand Tasks → application.
+Double-click run.
+Method 2 – Using the terminal
+Open the IntelliJ terminal and execute:
+./gradlew run
+Expected output:
+Welcome to My Simple Application
+Application built using Gradle
+This confirms that the Java application has been compiled and executed successfully.
+Step 9: Create a Selenium test
+The PDF includes Selenium and TestNG dependencies. To test a web page using Selenium, create a test file:
+src/test/java/org/example/WebsiteTest.java
+Enter the following code:
+
+package org.example;
+
+import org.testng.annotations.Test;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
+
+public class WebsiteTest {
+
+    @Test
+    public void testWebsiteTitle() {
+        WebDriver driver = new ChromeDriver();
+
+        try {
+            driver.get("https://example.com");
+
+            String title = driver.getTitle();
+
+            assert title.equals("Example Domain");
+        } finally {
+            driver.quit();
+        }
+    }
+}
+Explanation:
+Selenium WebDriver automates browser actions.
+driver.get() opens the specified webpage.
+getTitle() retrieves the webpage title.
+The assertion checks whether the title matches the expected value.
+driver.quit() closes the browser.
+Important: Selenium requires a supported browser such as Google Chrome or Chromium. Selenium Manager may download the required driver automatically if the browser and network environment support it.
+Step 10: Execute the test
+Run the following command in the IntelliJ terminal:
+./gradlew test
+Or use the Gradle tool window:
+Expand Tasks.
+Expand verification.
+Double-click test.
+If the test passes, Gradle reports a successful build.
+Test results can be viewed in:
+build/reports/tests/test/index.html
+Open the report in a browser to view the test results.
+Step 11: Create the static website
+The experiment also demonstrates hosting a static website through GitHub Pages.
+In the project root, create a directory named docs:
+mkdir docs
+Create an HTML file:
+nano docs/index.html
+Enter the following code:
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+    <title>My Simple Website</title>
+</head>
+<body>
+    <h1>Welcome to My Simple Website</h1>
+    <p>This website is hosted using GitHub Pages.</p>
+</body>
+</html>
+Save and exit.
+The docs folder must be in the project root, not inside src.
+Step 12: Verify the website locally
+Open the HTML file in a browser, or use IntelliJ IDEA to preview it.
+You should see:
+Welcome to My Simple Website
+This website is hosted using GitHub Pages.
+Step 13: Create a GitHub repository
+Open GitHub.
+Create a new repository named DevOpsGradle.
+Copy the repository URL.
+Return to IntelliJ IDEA.
+Step 14: Change the IntelliJ terminal to Bash
+In IntelliJ IDEA:
+Open Settings.
+Navigate to Tools → Terminal.
+Set the Shell path to:
+
+/bin/bash
+
+Apply the changes.
+Open a new terminal tab.
+This allows you to execute the Git commands shown in the practical record.
+Step 15: Initialize Git
+From the project root, execute:
+git init
+Add all project files:
+git add .
+Check the status:
+git status
+Step 16: Commit the project
+Execute:
+git commit -m "first commit"
+This creates the first commit containing the Gradle application, test files, and website files.
+Step 17: Connect GitHub and push the project
+Add the remote repository:
+git remote add origin https://github.com/YOUR_USERNAME/DevOpsGradle.git
+Rename the branch:
+git branch -M main
+Push the files:
+git push -u origin main
+Replace YOUR_USERNAME with your GitHub username.
+If authentication is requested, use a GitHub Personal Access Token instead of your GitHub account password.
+Step 18: Enable GitHub Pages
+Open your repository on GitHub.
+Click Settings.
+Select Pages from the sidebar.
+Under Build and deployment, select Deploy from a branch.
+Select the main branch.
+Select the /docs folder.
+Click Save.
+GitHub will begin publishing the static website.
+Step 19: Visit the hosted website
+After the deployment completes:
+Open Settings → Pages.
+Click Visit site.
+The website will open in the browser.
+The URL will generally follow this format:
+https://YOUR_USERNAME.github.io/DevOpsGradle/
+The website should display:
+Welcome to My Simple Website
+If the site does not load immediately, wait for the GitHub Pages deployment to finish and refresh the page.
+Step 20: Generate the JAR file
+Return to IntelliJ IDEA and open the terminal.
+Execute:
+./gradlew clean build
+This command:
+Cleans previous build outputs.
+Compiles the Java application.
+Runs the configured tests.
+Packages the application into a JAR file.
+The JAR file will be generated in:
+build/libs/
+Check the generated file:
+ls build/libs
+Step 21: Execute the JAR file
+Run the generated JAR:
+java -jar build/libs/DevOpsGradle.jar
+If the filename differs, use the exact filename shown by ls build/libs.
+Expected output:
+Welcome to My Simple Application
+Application built using Gradle
+This confirms that the application has been packaged and can be executed independently of IntelliJ IDEA.
+Note: The JAR generated using the provided configuration is not a fat JAR. If the application later uses external runtime libraries, those libraries may need to be packaged or supplied separately.
+Experiment 8 – Install Ansible, Configure Ansible Roles and Write Playbooks
+Here is the step-by-step practical procedure based on your uploaded Experiment 8 PDF, including the commands, YAML files, execution steps, and expected outputs.
+exp_8.pdf
+Aim: To install Ansible, configure Ansible roles, and write and execute a playbook to install Git, PostgreSQL, and Apache on Ubuntu.
+This procedure is for your Ubuntu system directly, without using a virtual machine.
+Step 1: Update the package index
+Open the Ubuntu terminal and execute:
+sudo apt update
+Explanation: This command refreshes the package index so Ubuntu can identify the latest available packages and their versions.
+Wait until the command completes successfully.
+Step 2: Upgrade packages and add the Ansible repository
+Execute the following commands one by one:
+sudo apt upgrade
+If prompted, type Y and press Enter.
+Install the package required to manage repositories:
+sudo apt install -y software-properties-common
+Add the official Ansible PPA:
+sudo add-apt-repository --yes --update ppa:ansible/ansible
+Explanation: The PPA provides Ansible packages. The --update option refreshes the package index after adding the repository.
+Step 3: Install Ansible
+Execute:
+sudo apt install ansible -y
+Wait for the installation to complete.
+Verify the installation:
+ansible --version
+You should see the installed Ansible version and its configuration details.
+For Experiment 8, your PDF instructs you to navigate to /etc/ansible in Step 3. Since that directory does not exist on your system, create it first. Your Ansible installation itself is already working.
+exp_8.pdf
+Step 1: Create the Ansible configuration directory
+Run:
+sudo mkdir -p /etc/ansible
+cd /etc/ansible
+Verify:
+pwd
+Expected:
+/etc/ansible
+Step 2: Continue with the experiment
+Your PDF's next steps are to check the directory contents and edit the hosts file (Step 4, page 4).
+exp_8.pdf
+ls -la
+sudo nano hosts
+For your local Ubuntu system, add this inventory configuration:
+[webservers]
+localhost ansible_connection=local
+Save with Ctrl+O, Enter, then Ctrl+X.
+Step 3: Create the roles
+The PDF creates roles named prerequisites, PostgreSQL, and apache (Step 6, page 5).
+exp_8.pdf
+Since you are now in /etc/ansible, run:
+sudo ansible-galaxy init prerequisites
+sudo ansible-galaxy init PostgreSQL
+sudo ansible-galaxy init apache
+Check:
+ls
+Important
+You do not need to reinstall Ansible. The missing /etc/ansible directory is just a directory setup issue. Your ansible --version output already confirmed Ansible is installed.
+
+Navigate to the Ansible configuration directory:
+
+cd /etc/ansible
+Check the files present:
+ls -la
+The directory typically contains:
+ansible.cfg – Ansible configuration file
+hosts – Inventory file containing managed hosts
+Step 4: Check the Ansible inventory file
+Open the inventory file:
+sudo nano hosts
+For this experiment, configure localhost as the managed host by adding the following at the end of the file:
+[local]
+localhost ansible_connection=local
+Save the file:
+Press Ctrl + O.
+Press Enter.
+Press Ctrl + X.
+Verify the inventory:
+ansible-inventory -i /etc/ansible/hosts --list
+Explanation: The inventory file tells Ansible which systems it should manage. Here, localhost refers to your own Ubuntu system, and ansible_connection=local allows Ansible to execute tasks locally without SSH.
+Step 5: Create an Ansible role
+An Ansible role is a structured way of organizing automation tasks into separate directories.
+Navigate to the Ansible directory:
+cd /etc/ansible
+Create a sample role:
+sudo ansible-galaxy init role-name
+Check the generated directory:
+ls
+View its structure:
+tree role-name
+The role contains directories such as:
+role-name/
+├── defaults/
+├── files/
+├── handlers/
+├── meta/
+├── tasks/
+├── templates/
+├── tests/
+└── vars/
+Explanation of important directories:
+Directory
+Purpose
+tasks/
+Contains the tasks to execute
+defaults/
+Contains default variables
+vars/
+Contains role variables
+handlers/
+Contains tasks triggered by notifications
+templates/
+Contains template files
+files/
+Contains files to copy to managed systems
+
+The sample role is only for understanding the role structure. The actual experiment uses three separate roles.
+Step 6: Create the three required roles
+The experiment requires three roles:
+prerequisites – Installs Git.
+postgresql – Installs and starts PostgreSQL.
+apache – Installs Apache web server.
+Navigate to the Ansible directory:
+cd /etc/ansible
+Create the prerequisites role:
+sudo ansible-galaxy init prerequisites
+Create the PostgreSQL role:
+sudo ansible-galaxy init postgresql
+Create the Apache role:
+sudo ansible-galaxy init apache
+Check the generated directories:
+ls
+View all three role structures:
+tree prerequisites postgresql apache
+Note: Your PDF uses PostgreSQL with capital letters. Use lowercase postgresql consistently because lowercase role names are the recommended convention.
+Step 7: Configure the prerequisites role to install Git
+7.1 Navigate to the tasks directory
+cd /etc/ansible/prerequisites/tasks
+Open the main.yml file:
+sudo nano main.yml
+7.2 Enter the following YAML code
+
+---
+# Tasks for prerequisites role
+
+- name: Install Git
+  ansible.builtin.apt:
+    name: git
+    state: present
+    update_cache: yes
+7.3 Save the file
+Press Ctrl + O.
+Press Enter.
+Press Ctrl + X.
+Explanation:
+name: Install Git describes the task.
+apt manages Ubuntu packages.
+name: git specifies the Git package.
+state: present ensures Git is installed.
+update_cache: yes refreshes the package index before installation.
+Step 8: Configure the PostgreSQL role
+8.1 Navigate to the PostgreSQL tasks directory
+cd /etc/ansible/postgresql/tasks
+Open the file:
+sudo nano main.yml
+8.2 Enter the following YAML code
+
+---
+# Tasks for PostgreSQL role
+
+- name: Install PostgreSQL
+  ansible.builtin.apt:
+    name: postgresql
+    state: present
+    update_cache: yes
+
+- name: Start PostgreSQL service
+  ansible.builtin.service:
+    name: postgresql
+    state: started
+    enabled: yes
+8.3 Save the file
+Press Ctrl + O, Enter, and Ctrl + X.
+Explanation:
+The first task installs the PostgreSQL database server.
+state: present ensures the package is installed.
+The second task starts the PostgreSQL service.
+state: started ensures the service is running.
+enabled: yes ensures PostgreSQL starts automatically during system boot.
+Step 9: Configure the Apache role
+9.1 Navigate to the Apache tasks directory
+cd /etc/ansible/apache/tasks
+Open the file:
+sudo nano main.yml
+9.2 Enter the following YAML code
+
+---
+# Tasks for Apache role
+
+- name: Install Apache web server
+  ansible.builtin.apt:
+    name: apache2
+    state: present
+    update_cache: yes
+
+- name: Start Apache service
+  ansible.builtin.service:
+    name: apache2
+    state: started
+    enabled: yes
+9.3 Save the file
+Press Ctrl + O, Enter, and Ctrl + X.
+Explanation:
+The first task installs Apache2.
+The second task starts the Apache service.
+enabled: yes configures Apache to start automatically when Ubuntu boots.
+Step 10: Create the main Ansible playbook
+The playbook calls all three roles in the required order.
+Navigate to the Ansible directory:
+cd /etc/ansible
+Create the playbook:
+sudo nano stack.yml
+Enter the following code:
+
+---
+- name: Configure the complete software stack
+  hosts: localhost
+  connection: local
+  become: true
+
+  roles:
+    - prerequisites
+    - postgresql
+    - apache
+Save the file using Ctrl + O, Enter, and Ctrl + X.
+Explanation:
+Configuration
+Purpose
+hosts: localhost
+Executes on the local Ubuntu system
+connection: local
+Uses a local connection
+become: true
+Executes tasks with administrator privileges
+roles
+Specifies the roles to execute
+prerequisites
+Installs Git
+postgresql
+Installs and starts PostgreSQL
+apache
+Installs and starts Apache
+
+Ansible executes the roles in the order listed in the playbook.
+Step 11: Verify the project structure
+Execute:
+cd /etc/ansible
+Then:
+tree -L 3
+The important structure should look like:
+/etc/ansible/
+├── hosts
+├── stack.yml
+├── prerequisites/
+│   └── tasks/
+│       └── main.yml
+├── postgresql/
+│   └── tasks/
+│       └── main.yml
+└── apache/
+    └── tasks/
+        └── main.yml
+Ensure that all three main.yml files and stack.yml exist.
+Step 12: Check the playbook syntax
+Before execution, validate the YAML syntax:
+sudo ansible-playbook stack.yml --syntax-check
+Expected output:
+playbook: stack.yml
+If an error appears, check the indentation in the YAML files. YAML requires spaces, not tabs.
+Step 13: Execute the Ansible playbook
+Run the playbook:
+sudo ansible-playbook stack.yml
+Ansible will execute the tasks in this order:
+Gather system facts.
+Install Git.
+Install PostgreSQL.
+Start PostgreSQL.
+Install Apache.
+Start Apache.
+Expected output will contain tasks similar to:
+PLAY [Configure the complete software stack]
+
+TASK [Gathering Facts]
+ok: [localhost]
+
+TASK [prerequisites : Install Git]
+changed: [localhost]
+
+TASK [postgresql : Install PostgreSQL]
+changed: [localhost]
+
+TASK [postgresql : Start PostgreSQL service]
+changed: [localhost]
+
+TASK [apache : Install Apache web server]
+changed: [localhost]
+
+TASK [apache : Start Apache service]
+changed: [localhost]
+
+PLAY RECAP
+localhost : ok=6  changed=5  unreachable=0  failed=0
+The exact number of changed tasks may vary if the packages are already installed.
+Successful execution: The playbook should finish with failed=0.
+Step 14: Verify Git installation
+Execute:
+git --version
+Expected output:
+git version 2.x.x
+The exact version depends on the Ubuntu package repository.
+Step 15: Verify PostgreSQL installation and service
+Check the PostgreSQL version:
+psql --version
+Check the service:
+sudo systemctl status postgresql
+Expected status:
+Active: active (running)
+Press q to exit the status screen.
+Step 16: Verify Apache installation and service
+Check the Apache version:
+apache2 -v
+Check the service:
+sudo systemctl status apache2
+Expected status:
+Active: active (running)
+Step 17: Verify the Apache webpage
+Open a web browser and enter:
+http://localhost
+The default Apache welcome page should appear.
+You can also verify it using the terminal:
+curl -I http://localhost
+Expected response:
+HTTP/1.1 200 OK
+This confirms that Apache is serving web requests successfully.
+Step 18: Verify idempotency (optional but useful)
+Run the playbook again:
+sudo ansible-playbook stack.yml
+If everything is already installed and running, most tasks should report:
+ok: [localhost]
+This demonstrates idempotency: Ansible maintains the desired system state without unnecessarily reinstalling or changing components.
+Result
+Thus, Ansible was successfully installed, three roles were created and configured to install Git, PostgreSQL, and Apache, and the stack.yml playbook was executed successfully to automate the installation and configuration of the software stack.
+exp_8.pdf
+Important for your practical: Your PDF uses /etc/ansible as the working directory and sudo for role creation. Follow that setup to match the record. If your Ubuntu system already has Ansible installed from the previous experiment, you can begin directly from Step 4 or Step 5.
+
